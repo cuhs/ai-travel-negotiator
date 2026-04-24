@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default("user_1")
+  email     String   @unique
+  name      String
+  image     String?
+  trips     Trip[]
+  createdAt DateTime @default(now())
+}
+
+model Trip {
+  id             String   @id @default(cuid())
+  userId         String   @default("user_1")
+  destination    String
+  cityCode       String
+  checkIn        DateTime
+  checkOut       DateTime
+  guests         Int      @default(1)
+  rooms          Int      @default(1)
+  budgetMin      Float
+  budgetMax      Float
+  currency       String   @default("USD")
+  starRating     Int?
+  notes          String?
+  status         String   @default("draft")
+  hotels         Hotel[]
+  negotiations   NegotiationCall[]
+  decision       TripDecision?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id])
+}
+
+model Hotel {
+  id             String   @id @default(cuid())
+  tripId         String
+  name           String
+  address        String
+  city           String
+  lat            Float
+  lng            Float
+  phone          String
+  rating         Float?
+  starRating     Int
+  photoUrl       String?
+  description    String?
+  amenities      String?
+  offers         HotelOffer[]
+  negotiations   NegotiationCall[]
+  trip           Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
+
+model HotelOffer {
+  id                String   @id @default(cuid())
+  hotelId           String
+  roomType          String
+  boardType         String
+  pricePerNight     Float
+  totalPrice        Float
+  currency          String   @default("USD")
+  cancellationPolicy String?
+  provider          String   @default("amadeus")
+  rawOffer          String?
+  hotel             Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+}
+
+model NegotiationCall {
+  id               String   @id @default(cuid())
+  hotelId          String
+  tripId           String
+  callId           String?
+  status           String   @default("pending")
+  originalPrice    Float?
+  negotiatedPrice  Float?
+  discountPercent  Float?
+  transcript       String?
+  recordingUrl     String?
+  durationMs       Int?
+  retellAnalysis   String?
+  notes            String?
+  hotel            Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  trip             Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+  completedAt      DateTime?
+}
+
+model TripDecision {
+  id        String   @id @default(cuid())
+  tripId    String   @unique
+  hotelId   String
+  offerId   String?
+  status    String   @default("pending")
+  finalPrice Float?
+  userNotes String?
+  createdAt DateTime @default(now())
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
