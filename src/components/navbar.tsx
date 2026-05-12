@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Plane, LayoutDashboard } from "lucide-react";
+import { ThemeToggle } from "./theme-toggle";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -24,6 +25,7 @@ export function Navbar() {
             <LayoutDashboard className="h-4 w-4" />
             Dashboard
           </Link>
+          <ThemeToggle />
         </nav>
       </div>
     </header>
