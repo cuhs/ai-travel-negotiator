@@ -62,7 +62,53 @@ interface MockHotelTemplate {
   priceMultiplier: number;
 }
 
-const HOTEL_TEMPLATES: Record<string, MockHotelTemplate[]> = {
+function varyAddressForTriple(address: string, towerIndex: number): string {
+  const wing = String.fromCharCode(64 + towerIndex); // A, B
+  if (address.includes(",")) {
+    const parts = address.split(",").map((s) => s.trim());
+    parts[0] = `${parts[0]} (Tower ${wing})`;
+    return parts.join(", ");
+  }
+  return `${address} · Tower ${wing}`;
+}
+
+function varyPhoneLastPair(phone: string, offset: number): string {
+  return phone.replace(/(\d{2})(?!.*\d)/, (match) => {
+    const n = (parseInt(match, 10) + offset) % 100;
+    return String(n).padStart(2, "0");
+  });
+}
+
+function tripleHotelTemplates(base: MockHotelTemplate[]): MockHotelTemplate[] {
+  const executive = base.map((t, i) => ({
+    ...t,
+    name: `${t.name} · Executive`,
+    address: varyAddressForTriple(t.address, 1),
+    phone: varyPhoneLastPair(t.phone, 17 + i),
+    description: `${t.description} Club lounge access and quiet-floor rooms when available.`,
+    rating: Math.min(5, Math.round((t.rating + 0.05) * 10) / 10),
+    priceMultiplier: Math.min(1.85, Math.round(t.priceMultiplier * 1.1 * 100) / 100),
+    amenities: t.amenities.includes("Airport Shuttle") ? t.amenities : [...t.amenities, "Airport Shuttle"],
+  }));
+
+  const value = base.map((t, i) => ({
+    ...t,
+    name: `${t.name} · City Value`,
+    address: varyAddressForTriple(t.address, 2),
+    phone: varyPhoneLastPair(t.phone, 41 + i),
+    description: `${t.description} Efficient rooms with limited on-site services.`,
+    rating: Math.max(2.8, Math.round((t.rating - 0.07) * 10) / 10),
+    priceMultiplier: Math.max(0.12, Math.round(t.priceMultiplier * 0.88 * 100) / 100),
+    amenities: (() => {
+      const lighter = t.amenities.filter((a) => !["Spa", "Valet Parking", "Pool", "Room Service"].includes(a));
+      return lighter.length ? lighter : ["WiFi", "24hr Front Desk"];
+    })(),
+  }));
+
+  return [...base, ...executive, ...value];
+}
+
+const HOTEL_TEMPLATES_BASE: Record<string, MockHotelTemplate[]> = {
   NYC: [
     {
       name: "The Manhattan Grand",
@@ -656,6 +702,13 @@ const HOTEL_TEMPLATES: Record<string, MockHotelTemplate[]> = {
     },
   ],
 };
+
+const HOTEL_TEMPLATES: Record<string, MockHotelTemplate[]> = Object.fromEntries(
+  (Object.entries(HOTEL_TEMPLATES_BASE) as [string, MockHotelTemplate[]][]).map(([code, list]) => [
+    code,
+    tripleHotelTemplates(list),
+  ])
+) as Record<string, MockHotelTemplate[]>;
 
 const ROOM_TYPES = [
   { name: "Standard Room", boardType: "Room Only", multiplier: 1.0 },
