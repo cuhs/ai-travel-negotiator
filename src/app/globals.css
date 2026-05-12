@@ -45,25 +45,23 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #fafafa;
-    --muted: #262626;
-    --muted-foreground: #a3a3a3;
-    --border: #262626;
-    --primary: #3b82f6;
-    --primary-foreground: #ffffff;
-    --secondary: #262626;
-    --secondary-foreground: #fafafa;
-    --accent: #0c4a6e;
-    --accent-foreground: #7dd3fc;
-    --destructive: #dc2626;
-    --destructive-foreground: #ffffff;
-    --success: #16a34a;
-    --warning: #d97706;
-    --ring: #3b82f6;
-  }
+.dark {
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
+  --border: #262626;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #262626;
+  --secondary-foreground: #fafafa;
+  --accent: #0c4a6e;
+  --accent-foreground: #7dd3fc;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --success: #16a34a;
+  --warning: #d97706;
+  --ring: #3b82f6;
 }
 
 body {
