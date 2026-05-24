@@ -5,9 +5,10 @@ AI Travel Negotiator is a local demo app for planning hotel trips, finding match
 ## What Is Implemented
 
 - Landing page with entry points to the trip wizard and dashboard.
+- Sticky navigation with dashboard access and a persisted dark/light theme toggle.
 - Multi-step trip creation flow for destination, dates, guests, rooms, budget, star rating, and notes.
 - Dashboard for listing and deleting trips.
-- Trip detail page that searches mock hotels, filters offers by trip budget and star rating, and lets the user select hotels for negotiation.
+- Trip detail page that searches expanded mock hotel inventory, filters offers by trip budget and star rating, and lets the user select hotels for negotiation.
 - Simulated negotiation workflow with randomized completed, failed, and no-answer outcomes.
 - Results table with sorting, transcript expansion, CSV export, and approval of one hotel.
 - Prisma data model for users, trips, hotels, offers, negotiation calls, and trip decisions.
@@ -15,7 +16,7 @@ AI Travel Negotiator is a local demo app for planning hotel trips, finding match
 ## Tech Stack
 
 - Next.js 16 App Router with React 19 and TypeScript.
-- Tailwind CSS 4 via `@tailwindcss/postcss`.
+- Tailwind CSS 4 via `@tailwindcss/postcss`, with CSS-variable light and dark themes.
 - Prisma 7 with the `better-sqlite3` adapter.
 - SQLite for local persistence.
 - `date-fns` for date formatting and `lucide-react` for icons.
@@ -30,7 +31,7 @@ Requires Node.js 20.9 or newer.
 npm install
 ```
 
-2. Create a local environment file.
+1. Create a local environment file.
 
 ```bash
 cp .env.example .env
@@ -42,26 +43,26 @@ The default value is:
 DATABASE_URL="file:./prisma/dev.db"
 ```
 
-3. Generate the Prisma client and apply the database schema.
+1. Generate the Prisma client and apply the database schema.
 
 ```bash
 npx prisma generate
 npx prisma migrate dev
 ```
 
-4. Start the development server.
+1. Start the development server.
 
 ```bash
 npm run dev
 ```
 
-5. Seed the demo user once the dev server is running.
+1. Seed the demo user once the dev server is running.
 
 ```bash
 curl -X POST http://localhost:3000/api/seed
 ```
 
-6. Open the app.
+1. Open the app.
 
 ```text
 http://localhost:3000
@@ -112,10 +113,12 @@ The Prisma schema lives in `prisma/schema.prisma`.
 ## Local Data Notes
 
 - Mock city and hotel data is defined in `src/lib/mock-data.ts`.
+- Hotel templates include base hotels plus generated `Executive` and `City Value` variants for broader search results.
 - `POST /api/hotels` deletes and recreates hotels for the given trip before returning matches.
 - Negotiation outcomes are randomized. About 75% succeed, 15% fail with no discount, and 10% produce no answer.
 - The app does not call real booking, voice, hotel, or payment APIs yet.
 - `prisma/dev.db` and generated Prisma client files are ignored by Git. Recreate them locally with the Prisma commands above.
+- Theme preference is stored in `localStorage`; the first visit falls back to the operating system color-scheme preference.
 
 ## Scripts
 
@@ -130,7 +133,7 @@ npm run lint     # run ESLint
 
 ```text
 src/app/             Next.js App Router pages and route handlers
-src/components/      Client UI components for the wizard, hotel list, and results
+src/components/      Client UI components for navigation, theming, the wizard, hotel list, and results
 src/lib/             Prisma client setup and mock data generators
 src/types/           Shared TypeScript types
 prisma/              Prisma schema and migrations
@@ -143,4 +146,5 @@ docs/                Additional implementation documentation
 - Route handlers use the Web `Request` API and `NextResponse`.
 - Dynamic route params are asynchronous in the current implementation and are awaited or unwrapped with React `use`.
 - Keep generated Prisma output out of source control.
+- Keep theme styling in `src/app/globals.css` aligned with the CSS variables consumed by Tailwind utility classes.
 - Treat the current app as a prototype. Production work should add authentication, validation hardening, deterministic tests, real provider integrations, and a booking/payment handoff.
