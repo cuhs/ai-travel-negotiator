@@ -19,6 +19,7 @@ AI Travel Negotiator is a local demo app for planning hotel trips, finding match
 - Tailwind CSS 4 via `@tailwindcss/postcss`, with CSS-variable light and dark themes.
 - Prisma 7 with the `better-sqlite3` adapter.
 - SQLite for local persistence.
+- `ws` for the local Cartesia voice-agent WebSocket bridge.
 - `date-fns` for date formatting and `lucide-react` for icons.
 
 ## Getting Started
@@ -41,6 +42,15 @@ The default value is:
 
 ```bash
 DATABASE_URL="file:./prisma/dev.db"
+```
+
+The Cartesia voice script also reads these optional values:
+
+```bash
+CARTESIA_API_KEY=""
+CARTESIA_AGENT_ID=""
+CARTESIA_VOICE_ID=""
+AUDIO_INPUT_DEVICE=""
 ```
 
 1. Generate the Prisma client and apply the database schema.
@@ -76,6 +86,53 @@ http://localhost:3000
 4. Select one or more hotels and start negotiation.
 5. Review generated negotiation results, transcripts, and savings.
 6. Approve a completed negotiation to save a `TripDecision` and mark the trip as completed.
+
+## Real Voice Negotiation Script
+
+The app still uses mock negotiation data in `POST /api/negotiate`, but `scripts/cartesia-voice-negotiator.mjs` provides a local bridge for real voice input and output through Cartesia Agents.
+
+Prerequisites:
+
+- A Cartesia API key.
+- A Cartesia Agent ID.
+- `ffmpeg` and `ffplay` installed on your machine for microphone capture and speaker playback.
+
+List local audio devices:
+
+```bash
+npm run voice:cartesia -- --list-audio-devices
+```
+
+Preview the prompt without opening a WebSocket:
+
+```bash
+npm run voice:cartesia -- --dry-run \
+  --hotel-name "The Manhattan Grand" \
+  --destination "New York" \
+  --check-in "2026-06-12" \
+  --check-out "2026-06-15" \
+  --guests 2 \
+  --rooms 1 \
+  --target-rate "$220/night" \
+  --max-rate "$285/night"
+```
+
+Start a live microphone-to-agent session:
+
+```bash
+npm run voice:cartesia -- \
+  --hotel-name "The Manhattan Grand" \
+  --hotel-phone "+1-212-555-0101" \
+  --destination "New York" \
+  --check-in "2026-06-12" \
+  --check-out "2026-06-15" \
+  --guests 2 \
+  --rooms 1 \
+  --target-rate "$220/night" \
+  --max-rate "$285/night"
+```
+
+On macOS, the default `ffmpeg` audio input is `:0`. If that is not your microphone, pass `--input-device` or set `AUDIO_INPUT_DEVICE` in `.env`.
 
 ## Available Routes
 
@@ -116,7 +173,7 @@ The Prisma schema lives in `prisma/schema.prisma`.
 - Hotel templates include base hotels plus generated `Executive` and `City Value` variants for broader search results.
 - `POST /api/hotels` deletes and recreates hotels for the given trip before returning matches.
 - Negotiation outcomes are randomized. About 75% succeed, 15% fail with no discount, and 10% produce no answer.
-- The app does not call real booking, voice, hotel, or payment APIs yet.
+- The app UI does not call real booking, voice, hotel, or payment APIs yet. The Cartesia script is a separate local integration path.
 - `prisma/dev.db` and generated Prisma client files are ignored by Git. Recreate them locally with the Prisma commands above.
 - Theme preference is stored in `localStorage`; the first visit falls back to the operating system color-scheme preference.
 
@@ -127,6 +184,7 @@ npm run dev      # start the Next.js dev server
 npm run build    # create a production build
 npm run start    # run the production build
 npm run lint     # run ESLint
+npm run voice:cartesia # start the local Cartesia voice negotiator bridge
 ```
 
 ## Project Layout
@@ -135,6 +193,7 @@ npm run lint     # run ESLint
 src/app/             Next.js App Router pages and route handlers
 src/components/      Client UI components for navigation, theming, the wizard, hotel list, and results
 src/lib/             Prisma client setup and mock data generators
+scripts/             Local integration scripts, including the Cartesia voice bridge
 src/types/           Shared TypeScript types
 prisma/              Prisma schema and migrations
 docs/                Additional implementation documentation
