@@ -30,6 +30,7 @@ model Trip {
   currency       String   @default("USD")
   starRating     Int?
   notes          String?
+  negotiationBrief String?
   status         String   @default("draft")
   hotels         Hotel[]
   negotiations   NegotiationCall[]
@@ -81,6 +82,9 @@ model NegotiationCall {
   originalPrice    Float?
   negotiatedPrice  Float?
   discountPercent  Float?
+  securedPerks     String?
+  packageSummary   String?
+  totalPerkValue   Float?
   transcript       String?
   recordingUrl     String?
   durationMs       Int?

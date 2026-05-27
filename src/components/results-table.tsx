@@ -1,8 +1,9 @@
 "use client";
 
 import { Fragment, useState } from "react";
-import { Download, ArrowUpDown, ChevronDown, ChevronUp, Check, Loader2, Star, TrendingDown } from "lucide-react";
+import { Download, ArrowUpDown, ChevronDown, ChevronUp, Check, Loader2, Gift, Sparkles } from "lucide-react";
 import { NegotiationStatusBadge } from "./negotiation-status";
+import type { SecuredPerk } from "@/types";
 
 interface NegotiationRow {
   hotelId: string;
@@ -13,7 +14,9 @@ interface NegotiationRow {
   negotiatedPrice: number | null;
   discountPercent: number | null;
   status: string;
-  transcript: { speaker: string; text: string }[] | null;
+  securedPerks: SecuredPerk[];
+  packageSummary: string[] | null;
+  totalPerkValue: number | null;
   durationMs: number | null;
   offerRoomType: string;
   offerBoardType: string;
@@ -24,34 +27,36 @@ interface ResultsTableProps {
   negotiations: NegotiationRow[];
 }
 
-type SortKey = "savings" | "price" | "name" | "rating";
+type SortKey = "value" | "price" | "name";
+
+const PERK_CATEGORY_LABELS: Record<SecuredPerk["category"], string> = {
+  amenity: "Amenity",
+  credit: "Credit",
+  flexible_term: "Flexible term",
+  rate: "Rate",
+};
 
 export function ResultsTable({ tripId, negotiations }: ResultsTableProps) {
-  const [sortBy, setSortBy] = useState<SortKey>("savings");
+  const [sortBy, setSortBy] = useState<SortKey>("value");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [approving, setApproving] = useState<string | null>(null);
   const [approved, setApproved] = useState<string | null>(null);
 
   const sorted = [...negotiations].sort((a, b) => {
     switch (sortBy) {
-      case "savings":
-        return (b.discountPercent ?? 0) - (a.discountPercent ?? 0);
+      case "value":
+        return (b.totalPerkValue ?? 0) - (a.totalPerkValue ?? 0);
       case "price":
         return (a.negotiatedPrice ?? a.originalPrice ?? 0) - (b.negotiatedPrice ?? b.originalPrice ?? 0);
       case "name":
         return a.hotelName.localeCompare(b.hotelName);
-      case "rating":
-        return (b.rating ?? 0) - (a.rating ?? 0);
       default:
         return 0;
     }
   });
 
   const successful = negotiations.filter((n) => n.status === "completed");
-  const totalSavings = successful.reduce((sum, n) => {
-    if (!n.originalPrice || !n.negotiatedPrice) return sum;
-    return sum + (n.originalPrice - n.negotiatedPrice);
-  }, 0);
+  const totalValue = successful.reduce((sum, n) => sum + (n.totalPerkValue ?? 0), 0);
 
   const approve = async (hotelId: string, price: number) => {
     setApproving(hotelId);
@@ -68,18 +73,18 @@ export function ResultsTable({ tripId, negotiations }: ResultsTableProps) {
   };
 
   const exportCSV = () => {
-    const header = "Hotel,Stars,Rating,Original Price,Negotiated Price,Savings %,Status\n";
+    const header = "Hotel,Original Price,Final Price,Perk Value,Perks Secured,Status\n";
     const rows = negotiations
-      .map(
-        (n) =>
-          `"${n.hotelName}",${n.starRating},${n.rating ?? "N/A"},${n.originalPrice ?? "N/A"},${n.negotiatedPrice ?? "N/A"},${n.discountPercent ?? 0}%,${n.status}`
-      )
+      .map((n) => {
+        const perks = n.securedPerks.map((p) => p.label).join("; ");
+        return `"${n.hotelName}",${n.originalPrice ?? "N/A"},${n.negotiatedPrice ?? "N/A"},${n.totalPerkValue ?? 0},"${perks}",${n.status}`;
+      })
       .join("\n");
     const blob = new Blob([header + rows], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `negotiation-results-${tripId}.csv`;
+    a.download = `negotiation-packages-${tripId}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -89,9 +94,9 @@ export function ResultsTable({ tripId, negotiations }: ResultsTableProps) {
       {successful.length > 0 && (
         <div className="mb-4 rounded-lg bg-success/10 p-4">
           <div className="flex items-center gap-2">
-            <TrendingDown className="h-5 w-5 text-success" />
+            <Gift className="h-5 w-5 text-success" />
             <span className="font-medium text-success">
-              Negotiated ${totalSavings.toFixed(2)} in total savings across {successful.length} hotel(s)
+              Secured ~${totalValue.toFixed(0)} in total value-adds across {successful.length} hotel(s)
             </span>
           </div>
         </div>
@@ -105,10 +110,9 @@ export function ResultsTable({ tripId, negotiations }: ResultsTableProps) {
             onChange={(e) => setSortBy(e.target.value as SortKey)}
             className="rounded-md border px-2 py-1 text-xs focus:border-primary focus:outline-none"
           >
-            <option value="savings">Sort by savings</option>
+            <option value="value">Sort by total value</option>
             <option value="price">Sort by price</option>
             <option value="name">Sort by name</option>
-            <option value="rating">Sort by rating</option>
           </select>
         </div>
         <button
@@ -125,9 +129,9 @@ export function ResultsTable({ tripId, negotiations }: ResultsTableProps) {
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="px-4 py-3 text-left font-medium">Hotel</th>
-              <th className="px-4 py-3 text-left font-medium">Original</th>
-              <th className="px-4 py-3 text-left font-medium">Negotiated</th>
-              <th className="px-4 py-3 text-left font-medium">Savings</th>
+              <th className="px-4 py-3 text-left font-medium">Listed rate</th>
+              <th className="px-4 py-3 text-left font-medium">Package value</th>
+              <th className="px-4 py-3 text-left font-medium">Perks secured</th>
               <th className="px-4 py-3 text-left font-medium">Status</th>
               <th className="px-4 py-3 text-left font-medium">Action</th>
             </tr>
@@ -138,30 +142,37 @@ export function ResultsTable({ tripId, negotiations }: ResultsTableProps) {
                 <tr className="border-b hover:bg-muted/30">
                   <td className="px-4 py-3">
                     <div className="font-medium">{n.hotelName}</div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      {Array.from({ length: n.starRating }).map((_, i) => (
-                        <Star key={i} className="h-3 w-3 fill-warning text-warning" />
-                      ))}
-                      {n.rating && <span className="ml-1">{n.rating}</span>}
+                    <div className="text-xs text-muted-foreground">
+                      {n.offerRoomType} · {n.offerBoardType}
                     </div>
                   </td>
                   <td className="px-4 py-3 font-mono">
-                    {n.originalPrice ? `$${n.originalPrice.toFixed(2)}` : "—"}
+                    {n.originalPrice ? `$${n.originalPrice.toFixed(2)}/nt` : "—"}
+                    {n.discountPercent ? (
+                      <div className="text-xs text-success">→ ${n.negotiatedPrice?.toFixed(2)}/nt</div>
+                    ) : null}
                   </td>
-                  <td className="px-4 py-3 font-mono font-medium">
-                    {n.status === "completed" && n.negotiatedPrice ? (
-                      <span className="text-success">${n.negotiatedPrice.toFixed(2)}</span>
-                    ) : n.originalPrice ? (
-                      `$${n.originalPrice.toFixed(2)}`
+                  <td className="px-4 py-3">
+                    {n.totalPerkValue ? (
+                      <span className="font-medium text-success">~${n.totalPerkValue.toFixed(0)}</span>
                     ) : (
-                      "—"
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    {n.discountPercent ? (
-                      <span className="font-medium text-success">-{n.discountPercent}%</span>
+                    {n.securedPerks.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {n.securedPerks.slice(0, 2).map((p) => (
+                          <span key={p.id} className="rounded-full bg-accent px-2 py-0.5 text-xs">
+                            {p.label}
+                          </span>
+                        ))}
+                        {n.securedPerks.length > 2 && (
+                          <span className="text-xs text-muted-foreground">+{n.securedPerks.length - 2} more</span>
+                        )}
+                      </div>
                     ) : (
-                      <span className="text-muted-foreground">0%</span>
+                      <span className="text-muted-foreground text-xs">None</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -181,46 +192,59 @@ export function ResultsTable({ tripId, negotiations }: ResultsTableProps) {
                         >
                           {approving === n.hotelId ? (
                             <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : approved === n.hotelId ? (
-                            <Check className="h-3 w-3" />
                           ) : (
                             <Check className="h-3 w-3" />
                           )}
-                          {approved === n.hotelId ? "Approved" : "Approve"}
+                          {approved === n.hotelId ? "Approved" : "Approve package"}
                         </button>
                       )}
-                      {n.transcript && (
+                      {n.packageSummary && (
                         <button
                           onClick={() => setExpanded(expanded === n.hotelId ? null : n.hotelId)}
                           className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-muted"
                         >
                           {expanded === n.hotelId ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                          Transcript
+                          Summary
                         </button>
                       )}
                     </div>
                   </td>
                 </tr>
-                {expanded === n.hotelId && n.transcript && (
+                {expanded === n.hotelId && (
                   <tr>
-                    <td colSpan={6} className="bg-muted/30 px-4 py-3">
-                      <div className="mx-auto max-w-2xl space-y-2">
-                        <div className="text-xs font-medium text-muted-foreground mb-2">Call Transcript ({Math.round((n.durationMs ?? 0) / 1000)}s)</div>
-                        {n.transcript.map((entry, i) => (
-                          <div
-                            key={i}
-                            className={`rounded-md px-3 py-2 text-sm ${
-                              entry.speaker === "agent"
-                                ? "ml-4 bg-primary/10 text-primary"
-                                : "mr-4 bg-muted"
-                            }`}
-                          >
-                            <span className="text-xs font-medium block mb-0.5 opacity-70">
-                              {entry.speaker === "agent" ? "AI Agent" : "Hotel"}
-                            </span>
-                            {entry.text}
+                    <td colSpan={6} className="bg-muted/30 px-4 py-4">
+                      <div className="mx-auto max-w-2xl space-y-4">
+                        <div>
+                          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-2">
+                            <Sparkles className="h-3.5 w-3.5" />
+                            Negotiation summary ({Math.round((n.durationMs ?? 0) / 1000)}s)
                           </div>
-                        ))}
+                          <ul className="space-y-1.5">
+                            {(n.packageSummary ?? []).map((line, i) => (
+                              <li key={i} className="text-sm text-muted-foreground">
+                                · {line}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        {n.securedPerks.length > 0 && (
+                          <div>
+                            <div className="text-xs font-medium text-muted-foreground mb-2">Secured perks</div>
+                            <div className="space-y-2">
+                              {n.securedPerks.map((perk) => (
+                                <div key={perk.id} className="rounded-md border bg-background px-3 py-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium">{perk.label}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {PERK_CATEGORY_LABELS[perk.category]} · ~${perk.estimatedValue}
+                                    </span>
+                                  </div>
+                                  <p className="mt-0.5 text-xs text-muted-foreground">{perk.description}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -234,9 +258,10 @@ export function ResultsTable({ tripId, negotiations }: ResultsTableProps) {
       {approved && (
         <div className="mt-4 rounded-lg border-2 border-success bg-success/5 p-4 text-center">
           <Check className="mx-auto h-8 w-8 text-success" />
-          <h3 className="mt-2 text-lg font-semibold">Booking Approved!</h3>
+          <h3 className="mt-2 text-lg font-semibold">Package approved!</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Your selection has been saved. In a production version, the agent would now complete the booking.
+            Your selection has been saved. You&apos;ll check in knowing exactly what was agreed — no surprises at the
+            front desk.
           </p>
         </div>
       )}

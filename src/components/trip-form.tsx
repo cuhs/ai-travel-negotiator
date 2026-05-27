@@ -267,7 +267,7 @@ export function TripForm() {
         {step === 4 && (
           <div>
             <h2 className="text-2xl font-bold">Any preferences?</h2>
-            <p className="mt-1 text-muted-foreground">Optional — help the agent find the best fit</p>
+            <p className="mt-1 text-muted-foreground">Optional — help find hotels that match your stay</p>
             <div className="mt-6 space-y-4">
               <div>
                 <label className="mb-1.5 block text-sm font-medium">Minimum star rating</label>

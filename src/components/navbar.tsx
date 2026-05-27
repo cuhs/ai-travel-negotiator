@@ -13,7 +13,7 @@ export function Navbar() {
       <div className="mx-auto flex h-14 max-w-6xl items-center px-4">
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <Plane className="h-5 w-5 text-primary" />
-          <span>AI Travel Negotiator</span>
+          <span>Travel Co-pilot</span>
         </Link>
         <nav className="ml-auto flex items-center gap-4">
           <Link

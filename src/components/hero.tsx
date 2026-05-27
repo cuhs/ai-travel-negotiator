@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Phone, Globe, Shield, TrendingDown } from "lucide-react";
+import { ArrowRight, Handshake, Globe, Shield, Gift } from "lucide-react";
 
 export function Hero() {
   return (
@@ -8,16 +8,16 @@ export function Hero() {
       <div className="relative mx-auto max-w-6xl px-4 py-24 sm:py-32">
         <div className="mx-auto max-w-2xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 text-sm text-muted-foreground">
-            <Phone className="h-3.5 w-3.5" />
-            AI-powered hotel price negotiation
+            <Handshake className="h-3.5 w-3.5" />
+            Collaborative hotel negotiation co-pilot
           </div>
           <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-            Let AI negotiate your
-            <span className="text-primary"> hotel deals</span>
+            Negotiate on your terms with an
+            <span className="text-primary"> AI co-pilot</span>
           </h1>
           <p className="mt-6 text-lg leading-8 text-muted-foreground">
-            Stop spending hours comparing prices and calling hotels. Tell us your travel plans and budget — our AI agent
-            calls hotels directly to negotiate the best rates for you.
+            You shape the strategy — amenities, credits, flexible terms, and optional rate adjustments. The co-pilot
+            executes only what you approve, so you stay aligned and in control.
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             <Link
@@ -43,24 +43,27 @@ export function Hero() {
 export function Features() {
   const features = [
     {
-      icon: Phone,
-      title: "AI Voice Negotiation",
-      description: "Our AI agent calls hotels directly, speaking their language — literally. Supports 60+ languages.",
+      icon: Handshake,
+      title: "You set the brief",
+      description:
+        "Choose priorities, leverage points, and approved talking points. Nothing is improvised without your consent.",
     },
     {
-      icon: TrendingDown,
-      title: "Best Price Guaranteed",
-      description: "Negotiates 5-25% off listed prices by leveraging competitor rates and flexible terms.",
+      icon: Gift,
+      title: "Value-add packages",
+      description:
+        "Negotiate for breakfast, parking, late check-out, and resort credits — not just base rate cuts.",
     },
     {
       icon: Globe,
-      title: "Global Coverage",
+      title: "Global coverage",
       description: "Search and negotiate with hotels across 6 major cities worldwide, with more being added.",
     },
     {
       icon: Shield,
-      title: "Approval-Only",
-      description: "You stay in control. The agent negotiates and presents options — you approve before any booking.",
+      title: "Transparent & ethical",
+      description:
+        "No social engineering or false claims. Review a clear summary of what was agreed — not a raw call transcript.",
     },
   ];
 
@@ -69,9 +72,7 @@ export function Features() {
       <div className="mx-auto max-w-6xl px-4 py-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight">How it works</h2>
-          <p className="mt-4 text-muted-foreground">
-            Three simple steps to save on your next trip
-          </p>
+          <p className="mt-4 text-muted-foreground">Three steps — you stay in the driver&apos;s seat</p>
         </div>
         <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {features.map((feature) => (
@@ -84,9 +85,17 @@ export function Features() {
         </div>
         <div className="mt-16 grid gap-8 sm:grid-cols-3">
           {[
-            { step: "1", title: "Enter your trip details", desc: "Destination, dates, budget, and preferences." },
-            { step: "2", title: "AI negotiates for you", desc: "The agent calls hotels and negotiates the best rates." },
-            { step: "3", title: "Review & approve", desc: "Compare results in a spreadsheet and pick your favorite." },
+            { step: "1", title: "Plan your trip", desc: "Destination, dates, budget, and hotel preferences." },
+            {
+              step: "2",
+              title: "Configure your brief",
+              desc: "Set priorities, leverage points, and consent to the exact talking points.",
+            },
+            {
+              step: "3",
+              title: "Review & approve",
+              desc: "Compare secured perk packages and pick the best mutual-value option.",
+            },
           ].map((item) => (
             <div key={item.step} className="text-center">
               <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">

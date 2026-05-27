@@ -1,4 +1,5 @@
-import { MockCity } from "@/types";
+import type { MockCity, NegotiationBrief, NegotiationPackageResult, SecuredPerk } from "@/types";
+import { DESIRED_AMENITIES } from "@/lib/negotiation-brief";
 
 export const MOCK_CITIES: MockCity[] = [
   {
@@ -784,46 +785,29 @@ export function getMockHotels(cityCode: string, checkIn: Date, checkOut: Date, g
   });
 }
 
-const AGENT_DIALOGUE = [
-  "Hello, I'm calling on behalf of a client who's interested in booking a stay at your hotel.",
-  "I understand. We're looking at dates from {checkIn} to {checkOut} for {guests} guest(s) in {rooms} room(s).",
-  "I've seen your rates listed at ${originalPrice} per night. Given that we're comparing several hotels in the area, could you offer a better rate?",
-  "That's appreciated. Could you go a bit lower? My client is a frequent traveler and would be a great long-term referral.",
-  "That sounds reasonable. Can you confirm the final rate and any included amenities?",
-  "Thank you very much. I'll pass this along to my client. Have a great day!",
-];
+const AMENITY_DESCRIPTIONS: Record<string, string> = {
+  breakfast: "Daily complimentary breakfast for all guests in the party.",
+  parking: "Complimentary self-parking for the duration of the stay.",
+  late_checkout: "Late check-out until 2:00 PM on departure day.",
+  early_checkin: "Early check-in from 11:00 AM when available.",
+  resort_credit: "On-property dining or spa credit applied to your folio.",
+  room_upgrade: "One-category room upgrade subject to availability.",
+  wifi_premium: "Premium high-speed WiFi included at no charge.",
+  spa_access: "Complimentary spa or pool facility access.",
+};
 
-const HOTEL_DIALOGUE = [
-  "Good afternoon, thank you for calling. How can I help you today?",
-  "Yes, we have availability for those dates. Our standard rate would be ${originalPrice} per night for that room type.",
-  "Hmm, let me check what I can do... I could offer a {discount}% discount, bringing it to ${negotiatedPrice} per night.",
-  "I appreciate you mentioning that. Let me speak with my manager... I can offer ${negotiatedPrice} per night, which includes breakfast.",
-  "The rate is ${negotiatedPrice} per night, including breakfast and WiFi. This is our best available rate for those dates.",
-  "You're welcome! We look forward to potentially hosting your client.",
-];
-
-const FAIL_DIALOGUE = [
-  "Good afternoon, this is the front desk. How can I help?",
-  "I'm sorry, our rates are fixed and we don't offer discounts for those dates. It's our peak season.",
-  "I understand, but I'm not able to adjust pricing. You're welcome to book at the standard rate.",
-  "I'm sorry I couldn't help. Feel free to try again closer to the dates. Goodbye.",
-];
-
-const NO_ANSWER_AGENT = [
-  "Hello? Is anyone there?",
-  "I'm calling about a potential hotel booking... I'll try again later.",
-];
-
-export function generateMockNegotiation(
+export function generateMockNegotiationPackage(
   originalPrice: number,
   hotelName: string,
   checkIn: string,
   checkOut: string,
   guests: number,
-  rooms: number
-): { success: boolean; result: { callId: string; originalPrice: number; negotiatedPrice: number; discountPercent: number; transcript: { speaker: "agent" | "hotel"; text: string }[]; durationMs: number } } {
+  rooms: number,
+  brief: NegotiationBrief
+): { success: boolean; result: NegotiationPackageResult } {
   const rand = Math.random();
   const callId = `call_${Math.random().toString(36).substring(2, 10)}`;
+  const durationMs = 35000 + Math.floor(Math.random() * 45000);
 
   if (rand < 0.1) {
     return {
@@ -833,16 +817,18 @@ export function generateMockNegotiation(
         originalPrice,
         negotiatedPrice: originalPrice,
         discountPercent: 0,
-        transcript: NO_ANSWER_AGENT.map((text) => ({
-          speaker: "agent" as const,
-          text: text.replace("{hotelName}", hotelName),
-        })),
+        securedPerks: [],
+        packageSummary: [
+          `Attempted to reach ${hotelName} — no answer after two rings.`,
+          "No changes to your package. You can retry or choose another hotel.",
+        ],
+        totalPerkValue: 0,
         durationMs: 8000 + Math.floor(Math.random() * 4000),
       },
     };
   }
 
-  if (rand < 0.25) {
+  if (rand < 0.22) {
     return {
       success: false,
       result: {
@@ -850,87 +836,127 @@ export function generateMockNegotiation(
         originalPrice,
         negotiatedPrice: originalPrice,
         discountPercent: 0,
-        transcript: [
-          { speaker: "agent", text: AGENT_DIALOGUE[0] },
-          ...FAIL_DIALOGUE.map((text) => ({
-            speaker: "hotel" as const,
-            text,
-          })),
+        securedPerks: [],
+        packageSummary: [
+          `${hotelName} confirmed availability for ${checkIn} – ${checkOut}.`,
+          "The front desk could not add perks or adjust terms for these dates.",
+          "Listed rate remains unchanged. No claims were made beyond your brief.",
         ],
+        totalPerkValue: 0,
         durationMs: 25000 + Math.floor(Math.random() * 15000),
       },
     };
   }
 
-  const discount = 5 + Math.floor(Math.random() * 21);
-  const negotiatedPrice = Math.round(originalPrice * (1 - discount / 100) * 100) / 100;
+  const securedPerks: SecuredPerk[] = [];
+  const summary: string[] = [`Connected with ${hotelName} reservations.`];
 
-  const transcript = [
-    {
-      speaker: "agent" as const,
-      text: AGENT_DIALOGUE[0],
-    },
-    {
-      speaker: "hotel" as const,
-      text: HOTEL_DIALOGUE[0],
-    },
-    {
-      speaker: "agent" as const,
-      text: AGENT_DIALOGUE[1]
-        .replace("{checkIn}", checkIn)
-        .replace("{checkOut}", checkOut)
-        .replace("{guests}", String(guests))
-        .replace("{rooms}", String(rooms)),
-    },
-    {
-      speaker: "hotel" as const,
-      text: HOTEL_DIALOGUE[1].replace("{originalPrice}", String(originalPrice)),
-    },
-    {
-      speaker: "agent" as const,
-      text: AGENT_DIALOGUE[2].replace("{originalPrice}", String(originalPrice)),
-    },
-    {
-      speaker: "hotel" as const,
-      text: HOTEL_DIALOGUE[2]
-        .replace("{discount}", String(discount))
-        .replace("{negotiatedPrice}", String(negotiatedPrice)),
-    },
-    {
-      speaker: "agent" as const,
-      text: AGENT_DIALOGUE[3],
-    },
-    {
-      speaker: "hotel" as const,
-      text: HOTEL_DIALOGUE[3].replace("{negotiatedPrice}", String(negotiatedPrice)),
-    },
-    {
-      speaker: "agent" as const,
-      text: AGENT_DIALOGUE[4],
-    },
-    {
-      speaker: "hotel" as const,
-      text: HOTEL_DIALOGUE[4].replace("{negotiatedPrice}", String(negotiatedPrice)),
-    },
-    {
-      speaker: "agent" as const,
-      text: AGENT_DIALOGUE[5],
-    },
-    {
-      speaker: "hotel" as const,
-      text: HOTEL_DIALOGUE[5],
-    },
-  ];
+  if (brief.approvedArguments.includes("mention_dates")) {
+    summary.push(`Shared your dates: ${checkIn} to ${checkOut}.`);
+  }
+  if (brief.approvedArguments.includes("mention_stay_length")) {
+    summary.push(`Confirmed ${guests} guest(s) and ${rooms} room(s).`);
+  }
+  if (brief.leveragePoints.length > 0 && brief.approvedArguments.includes("mention_occasion")) {
+    summary.push(`Referenced your context: ${brief.leveragePoints.join("; ")}.`);
+  } else if (brief.leveragePoints.length > 0) {
+    summary.push(`Mentioned: ${brief.leveragePoints.join("; ")}.`);
+  }
+
+  const wantsAmenities = brief.priorities.includes("amenities");
+  const wantsFlexible = brief.priorities.includes("flexible_terms");
+  const wantsCredits = brief.priorities.includes("property_credits");
+  const wantsRate = brief.priorities.includes("rate_adjustment") && brief.approvedArguments.includes("request_modest_rate");
+
+  if (wantsAmenities && brief.approvedArguments.includes("ask_amenity_bundle")) {
+    for (const amenityId of brief.desiredAmenities) {
+      if (Math.random() > 0.35) {
+        const meta = DESIRED_AMENITIES.find((a) => a.id === amenityId);
+        if (!meta) continue;
+        securedPerks.push({
+          id: amenityId,
+          label: meta.label,
+          description: AMENITY_DESCRIPTIONS[amenityId] ?? meta.label,
+          estimatedValue: meta.estimatedValue,
+          category: amenityId === "resort_credit" ? "credit" : "amenity",
+        });
+      }
+    }
+  }
+
+  if (wantsFlexible && brief.approvedArguments.includes("ask_flexible_checkin")) {
+    if (Math.random() > 0.4 && !securedPerks.some((p) => p.id === "late_checkout")) {
+      securedPerks.push({
+        id: "flex_late_checkout",
+        label: "Late check-out until 1:30 PM",
+        description: "Extended departure time granted for your stay.",
+        estimatedValue: 35,
+        category: "flexible_term",
+      });
+    }
+    if (Math.random() > 0.55) {
+      securedPerks.push({
+        id: "flex_cancellation",
+        label: "24-hour cancellation window",
+        description: "Cancel up to 24 hours before arrival without penalty.",
+        estimatedValue: 50,
+        category: "flexible_term",
+      });
+    }
+  }
+
+  if (wantsCredits && brief.approvedArguments.includes("ask_property_credit")) {
+    if (Math.random() > 0.45) {
+      const creditValue = 50 + Math.floor(Math.random() * 51);
+      securedPerks.push({
+        id: "property_credit",
+        label: `$${creditValue} property credit`,
+        description: "Credit applicable to on-site dining, spa, or amenities.",
+        estimatedValue: creditValue,
+        category: "credit",
+      });
+    }
+  }
+
+  let discountPercent = 0;
+  let negotiatedPrice = originalPrice;
+
+  if (wantsRate && Math.random() > 0.5) {
+    discountPercent = 3 + Math.floor(Math.random() * 8);
+    negotiatedPrice = Math.round(originalPrice * (1 - discountPercent / 100) * 100) / 100;
+    securedPerks.push({
+      id: "rate_adjustment",
+      label: `${discountPercent}% rate adjustment`,
+      description: `Nightly rate reduced from $${originalPrice.toFixed(2)} to $${negotiatedPrice.toFixed(2)}.`,
+      estimatedValue: Math.round((originalPrice - negotiatedPrice) * 100) / 100,
+      category: "rate",
+    });
+    summary.push(`Requested a modest rate adjustment — ${discountPercent}% reduction secured.`);
+  }
+
+  if (securedPerks.filter((p) => p.category !== "rate").length > 0) {
+    summary.push(
+      `Secured ${securedPerks.filter((p) => p.category !== "rate").length} value-add item(s) beyond the listed rate.`
+    );
+  } else if (!wantsRate) {
+    summary.push("Hotel confirmed availability; no additional perks were available for these dates.");
+  }
+
+  summary.push("All talking points matched your approved brief — no unauthorized claims were made.");
+
+  const totalPerkValue = securedPerks.reduce((sum, p) => sum + p.estimatedValue, 0);
 
   return {
-    success: true,
+    success: securedPerks.length > 0,
     result: {
       callId,
       originalPrice,
       negotiatedPrice,
-      discountPercent: discount,
-      transcript,
-      durationMs: 45000 + Math.floor(Math.random() * 60000),
+      discountPercent,
+      securedPerks,
+      packageSummary: summary,
+      totalPerkValue,
+      durationMs,
     },
   };
 }

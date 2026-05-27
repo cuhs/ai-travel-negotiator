@@ -29,7 +29,7 @@ export function NegotiationStatusBadge({ status }: { status: Status }) {
     case "completed":
       return (
         <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs text-success">
-          <TrendingDown className="h-3 w-3" /> Negotiated
+          <TrendingDown className="h-3 w-3" /> Package secured
         </span>
       );
     case "failed":
