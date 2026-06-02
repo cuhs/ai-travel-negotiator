@@ -57,7 +57,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Your Trips</h1>
-          <p className="mt-1 text-muted-foreground">Manage your travel plans and negotiated packages</p>
+          <p className="mt-1 text-muted-foreground">Manage your travel plans, stays, and concierge briefs</p>
         </div>
         <Link
           href="/trip/new"
@@ -72,7 +72,7 @@ export default function DashboardPage() {
         <div className="rounded-lg border-2 border-dashed p-12 text-center">
           <MapPin className="mx-auto h-12 w-12 text-muted-foreground" />
           <h3 className="mt-4 text-lg font-medium">No trips yet</h3>
-          <p className="mt-1 text-muted-foreground">Create your first trip and configure a negotiation brief.</p>
+          <p className="mt-1 text-muted-foreground">Create your first trip and guide the concierge.</p>
           <Link
             href="/trip/new"
             className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"

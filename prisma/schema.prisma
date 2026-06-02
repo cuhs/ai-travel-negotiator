@@ -31,6 +31,7 @@ model Trip {
   starRating     Int?
   notes          String?
   negotiationBrief String?
+  activityBrief  String?
   status         String   @default("draft")
   hotels         Hotel[]
   negotiations   NegotiationCall[]

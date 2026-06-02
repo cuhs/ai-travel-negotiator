@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Handshake, Globe, Shield, Gift } from "lucide-react";
+import { ArrowRight, Compass, Globe, Shield, Gift } from "lucide-react";
 
 export function Hero() {
   return (
@@ -8,16 +8,16 @@ export function Hero() {
       <div className="relative mx-auto max-w-6xl px-4 py-24 sm:py-32">
         <div className="mx-auto max-w-2xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 text-sm text-muted-foreground">
-            <Handshake className="h-3.5 w-3.5" />
-            Collaborative hotel negotiation co-pilot
+            <Compass className="h-3.5 w-3.5" />
+            Collaborative travel concierge co-pilot
           </div>
           <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-            Negotiate on your terms with an
-            <span className="text-primary"> AI co-pilot</span>
+            Plan around what you want to do with an
+            <span className="text-primary"> AI concierge</span>
           </h1>
           <p className="mt-6 text-lg leading-8 text-muted-foreground">
-            You shape the strategy — amenities, credits, flexible terms, and optional rate adjustments. The co-pilot
-            executes only what you approve, so you stay aligned and in control.
+            You set the destination, stay preferences, pace, and activity style. The concierge turns those signals into
+            a trip plan that can coordinate stays, local experiences, and approved outreach.
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             <Link
@@ -43,27 +43,27 @@ export function Hero() {
 export function Features() {
   const features = [
     {
-      icon: Handshake,
-      title: "You set the brief",
+      icon: Compass,
+      title: "You set the trip style",
       description:
-        "Choose priorities, leverage points, and approved talking points. Nothing is improvised without your consent.",
+        "Choose the pace, activity vibe, lodging preferences, and notes your concierge should honor.",
     },
     {
       icon: Gift,
-      title: "Value-add packages",
+      title: "Local experiences",
       description:
-        "Negotiate for breakfast, parking, late check-out, and resort credits — not just base rate cuts.",
+        "Capture what you want to do so a future agent can look for activities, promoters, and local operators.",
     },
     {
       icon: Globe,
-      title: "Global coverage",
-      description: "Search and negotiate with hotels across 6 major cities worldwide, with more being added.",
+      title: "Stay coordination",
+      description: "Search compatible stays across 6 major cities while keeping your broader trip plan in view.",
     },
     {
       icon: Shield,
-      title: "Transparent & ethical",
+      title: "Transparent control",
       description:
-        "No social engineering or false claims. Review a clear summary of what was agreed — not a raw call transcript.",
+        "The co-pilot only uses the preferences and talking points you approve before any outreach begins.",
     },
   ];
 
@@ -72,7 +72,7 @@ export function Features() {
       <div className="mx-auto max-w-6xl px-4 py-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight">How it works</h2>
-          <p className="mt-4 text-muted-foreground">Three steps — you stay in the driver&apos;s seat</p>
+          <p className="mt-4 text-muted-foreground">Three steps - you stay in the driver&apos;s seat</p>
         </div>
         <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {features.map((feature) => (
@@ -85,16 +85,16 @@ export function Features() {
         </div>
         <div className="mt-16 grid gap-8 sm:grid-cols-3">
           {[
-            { step: "1", title: "Plan your trip", desc: "Destination, dates, budget, and hotel preferences." },
+            { step: "1", title: "Plan your trip", desc: "Destination, dates, budget, stay quality, and activity style." },
             {
               step: "2",
-              title: "Configure your brief",
-              desc: "Set priorities, leverage points, and consent to the exact talking points.",
+              title: "Guide the concierge",
+              desc: "Tell the co-pilot what you want to do and what constraints matter.",
             },
             {
               step: "3",
               title: "Review & approve",
-              desc: "Compare secured perk packages and pick the best mutual-value option.",
+              desc: "Compare options and approve the outreach or package that fits best.",
             },
           ].map((item) => (
             <div key={item.step} className="text-center">

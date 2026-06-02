@@ -2,6 +2,15 @@ export type TripStatus = "draft" | "searching" | "negotiating" | "completed";
 export type NegotiationStatus = "pending" | "calling" | "completed" | "failed" | "no_answer";
 export type DecisionStatus = "pending" | "approved" | "rejected";
 
+export type ActivityCategoryId =
+  | "active"
+  | "relaxed"
+  | "social"
+  | "private_group"
+  | "solo_friendly"
+  | "food_nightlife"
+  | "culture_sights";
+
 export type NegotiationPriority = "amenities" | "flexible_terms" | "property_credits" | "rate_adjustment";
 export type ConversationalStyle = "professional" | "friendly" | "direct";
 export type ApprovedArgumentId =
@@ -31,6 +40,12 @@ export interface NegotiationBrief {
   approvedArguments: ApprovedArgumentId[];
   customNotes?: string;
   userConsentAt: string;
+}
+
+export interface ActivityBrief {
+  categories: ActivityCategoryId[];
+  request: string;
+  createdAt: string;
 }
 
 export interface SecuredPerk {
