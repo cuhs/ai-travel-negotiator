@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Travel Co-pilot",
-  description: "Collaborative hotel negotiation — you shape the brief, the co-pilot executes with your consent",
+  title: "Travel Concierge",
+  description: "Collaborative travel planning - you shape the trip, the concierge co-pilot coordinates the details",
 };
 
 export default function RootLayout({
